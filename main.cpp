@@ -1,28 +1,38 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+#include "featureDetection.hpp"
+using namespace cv;
+
 int main() {
-    // Load an image from the filesystem.
-    // The path is relative to the execution directory.
-    cv::Mat image = cv::imread("../test.jpg");
+    Mat img1 = imread("../images/img1.jpeg");
+    Mat img2 = imread("../images/img2.jpeg");
 
-    // Verify that the image data has been loaded successfully.
-    if (image.empty()) {
-        std::cerr << "Error: Image could not be loaded." << std::endl;
-        return -1;
-    }
+    // Using SIFT
+    auto siftRes = detectAndMatchSIFT(img1, img2);
+    waitKey(0);
+    destroyAllWindows();
 
-    // Create a window for image display.
-    cv::namedWindow("Image Display", cv::WINDOW_AUTOSIZE);
+    Mat stitchedImgSIFT = stitch(img1, img2, siftRes.keypoints1,
+                                 siftRes.keypoints2, siftRes.matches, false);
+    Mat stitchedImgSIFTFeathering =
+        stitch(img1, img2, siftRes.keypoints1, siftRes.keypoints2,
+               siftRes.matches, true);
 
-    // Render the image in the created window.
-    cv::imshow("Image Display", image);
+    imshow("Stitched image SIFT", stitchedImgSIFT);
+    imshow("Stitched image SIFT - Feathering", stitchedImgSIFTFeathering);
+
+    // Using ORB
+    // auto orbRes = detectAndMatchORB(img1, img2);
+    // Mat stitchedImgORB = stitch(img1, img2, orbRes.keypoints1,
+    //                             orbRes.keypoints2, orbRes.matches, false);
+    // imshow("Stitched image ORB", stitchedImgORB);
 
     // Wait indefinitely for a user key press.
-    cv::waitKey(0);
+    waitKey(0);
 
     // Release all resources.
-    cv::destroyAllWindows();
+    destroyAllWindows();
 
     return 0;
 }
